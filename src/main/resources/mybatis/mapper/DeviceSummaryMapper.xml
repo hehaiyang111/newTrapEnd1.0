@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.huihongcloud.mapper.DeviceSummaryMapper">
+    <select id="queryDeviceSummaryByProvince" resultType="cn.huihongcloud.entity.summary.SummaryEntity">
+        select count(distinct device_id ) deviceCount, sum(num) beetleCount, device.city `name`, device.adcode code
+        from device_maintenance
+        left join device on device_maintenance.device_id = device.id
+        where adcode like concat(#{adcode}, '%')
+            and isactive = '0'
+        
+            and device.city is not null
+        <if test="startDate != null and startDate !=''">
+            and `date` &gt;= #{startDate}
+        </if>
+
+        <if test="endDate != null and endDate !=''">
+            and `date` &lt;= #{endDate}
+        </if>
+
+        group by device.city
+    </select>
+    <select id="queryDeviceSummaryByCity" resultType="cn.huihongcloud.entity.summary.SummaryEntity">
+        select count(distinct device_id) deviceCount, sum(num) beetleCount, device.area `name`, device.adcode code
+        from device_maintenance
+        left join device on device_maintenance.device_id = device.id
+        where adcode like concat(#{adcode}, '%')
+              and isactive = '0'
+        
+              and  device.area is not null
+        <if test="startDate != null and startDate !=''">
+            and `date` &gt;= #{startDate}
+        </if>
+
+        <if test="endDate != null and endDate !=''">
+            and `date` &lt;= #{endDate}
+        </if>
+        group by device.area
+    </select>
+    <select id="queryDeviceSummaryByArea" resultType="cn.huihongcloud.entity.summary.SummaryEntity">
+        select count(distinct device_id) deviceCount, sum(num) beetleCount, device.town `name`, device.adcode code
+        from device_maintenance
+        left join device on device_maintenance.device_id = device.id
+        where adcode like concat(#{adcode}, '%')
+              and isactive = '0'
+        
+              and device.town is not null
+        <if test="startDate != null and startDate !=''">
+            and `date` &gt;= #{startDate}
+        </if>
+
+        <if test="endDate != null and endDate !=''">
+            and `date` &lt;= #{endDate}
+        </if>
+        group by device.town
+    </select>
+    <select id="queryDeviceSummaryByManager" resultType="cn.huihongcloud.entity.summary.SummaryEntity">
+        select count(distinct device_id) deviceCount, sum(num) beetleCount, device.manager `name`, device.adcode code
+        from device_maintenance
+        left join device on device_maintenance.device_id = device.id
+        where device.adcode like concat(#{adcode}, '%')
+        and isactive = '0'
+        
+        and device.manager is not null
+        <if test="startDate != null and startDate !=''">
+            and `date` &gt;= #{startDate}
+        </if>
+
+        <if test="endDate != null and endDate !=''">
+            and `date` &lt;= #{endDate}
+        </if>
+        group by device.manager
+    </select>
+    <select id="queryWorkerSummaryByAdcode" resultType="cn.huihongcloud.entity.summary.SummaryEntity">
+        select count(distinct device_id) deviceCount, sum(num) beetleCount, username `name`, username code
+        from device_maintenance
+        left join device on device_maintenance.device_id = device.id
+        where adcode like concat(#{adcode}, '%')
+              and isactive = '0'
+        
+              and username is not null
+        <if test="startDate != null and startDate !=''">
+            and `date` &gt;= #{startDate}
+        </if>
+
+        <if test="endDate != null and endDate !=''">
+            and `date` &lt;= #{endDate}
+        </if>
+        group by username
+    </select>
+    <select id="queryDeviceSum" resultType="java.util.Map">
+        select count(distinct device_id) `count`, sum(num) `sum`
+        from device_maintenance
+
+        left join device on device.id = device_maintenance.device_id
+        where adcode like concat(#{adcode}, '%')
+              and isactive = '0'
+        
+        <if test="startDate != null and startDate !=''">
+
+            and `date` &gt;= #{startDate}
+        </if>
+
+        <if test="endDate != null and endDate !=''">
+
+            and `date` &lt;= #{endDate}
+        </if>
+    </select>
+    <select id="queryDeviceSum4" resultType="java.util.Map">
+        select count(distinct device_id) `count`, sum(num) `sum` from device_maintenance
+        left join device on device.id = device_maintenance.device_id
+        left join user on device_maintenance.username = user.username
+        where parent = #{adcode}
+              and isactive = '0'
+        
+        <if test="startDate != null and startDate !=''">
+            and `date` &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate !=''">
+            and `date` &lt;= #{endDate}
+        </if>
+    </select>
+    <select id="queryDeviceDetail" resultType="cn.huihongcloud.entity.summary.DeviceDetail">
+        select count(*) `count`, sum(num) `num`, device_id id
+        from device_maintenance
+        left join device on device_id = device.id
+        where adcode like concat(#{adcode}, '%')
+              and isactive = '0'
+              
+        group by device_id
+    </select>
+    <select id="queryWorkerSummaryByManager" resultType="cn.huihongcloud.entity.summary.SummaryEntity">
+        select count(distinct device_id) deviceCount, sum(num) beetleCount, device_maintenance.username `name`, device_maintenance.username code
+        from device_maintenance
+        left join device on device_maintenance.device_id = device.id
+        left join user on device_maintenance.username = user.username
+        where parent = #{manager}
+              and isactive = '0'
+        
+        <if test="startDate != null and startDate !=''">
+            and `date` &gt;= #{startDate}
+        </if>
+
+        <if test="endDate != null and endDate !=''">
+            and `date` &lt;= #{endDate}
+        </if>
+        group by device_maintenance.username
+    </select>
+
+    <select id="selectByColName" resultType="cn.huihongcloud.entity.NewTrapDataSummary">
+        select count(distinct device_id) deviceNum,sum(num) beetleNum,sum(other_num) otherNum,remark from device_maintenance
+        left join device on device.id = device_id where manager like concat('%',#{username},'%')
+        <if test="colName != null and searchText != ''">
+        and ${colName} = #{searchText}
+        </if>
+        <if test="startDate != null and startDate != ''">
+            and `date` &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            and `date` &lt;= #{endDate}
+        </if>
+        group by ${colName};
+
+    </select>
+</mapper>

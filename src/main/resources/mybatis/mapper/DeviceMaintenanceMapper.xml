@@ -1,0 +1,1055 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.huihongcloud.mapper.DeviceMaintenanceMapper">
+    <resultMap id="DeviceMaintenance" type="cn.huihongcloud.entity.device.DeviceMaintenance">
+        <id column="id" property="id"/>
+        <result column="device_id" property="deviceId"/>
+        <result column="batch" property="batch"/>
+        <result column="num" property="num"/>
+        <result column="male_num" property="maleNum"/>
+        <result column="female_num" property="femaleNum"/>
+        <result column="username" property="username"/>
+        <result column="date" property="date"/>
+        <result column="longitude" property="longitude"/>
+        <result column="latitude" property="latitude"/>
+        <result column="altitude" property="altitude"/>
+        <result column="img_id" property="imageId"/>
+        <result column="drug" property="drug"/>
+        <result column="remark" property="remark"/>
+        <result column="province" property="province"/>
+        <result column="city" property="city"/>
+        <result column="area" property="area"/>
+        <result column="town" property="town"/>
+        <result column="working_content" property="workingContent"/>
+        <result column="reported" property="reported"/>
+        <result column="other_type" property="otherType"/>
+        <result column="name" property="otherType"/>
+        <result column="other_num" property="otherNum"/>
+    </resultMap>
+
+    <select id="getMaintenanceDataByDeviceId" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select * from device_maintenance
+        left join device on device.id = device_id
+        where device_id = #{deviceId}
+        
+        <if test="myusername != null and myusername !=''">
+            and device.manager = #{myusername}
+        </if>
+        <if test="startDate != null and startDate !='' and startDate != 'null 00:00:00'">
+            and `date` &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate !='' and endDate!= 'null 23:59:59'">
+            and `date` &lt;= #{endDate}
+        </if>
+        <if test="reported != null and reported != ''">
+            and reported = #{reported}
+        </if>
+
+    </select>
+
+    <select id="getMaintenanceDataByAdcodeAndTown" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select device_maintenance.id,
+        device_maintenance.device_id,
+        device_maintenance.batch,
+        sum(num) num,
+        device_maintenance.other_type,
+        device_maintenance.other_num,
+        device_maintenance.username,
+        user.name,
+        device_maintenance.date,
+        device_maintenance.longitude,
+        device_maintenance.latitude,
+        device_maintenance.altitude,
+        device_maintenance.img_id,
+        device_maintenance.drug,
+        device_maintenance.remark,
+        device.province,
+        device.city,
+        device.area,
+        device.town,
+        device_maintenance.working_content,
+        device_maintenance.reported
+        from device_maintenance
+        left join device on device.id = device_maintenance.device_id
+        left join user on device_maintenance.username = user.username
+        where device_id in
+        (select id from device where
+        1 = 1
+        <if test="adcode != null and adcode != ''">
+            and
+            adcode like concat(#{adcode}, '%')
+        </if>
+
+        <if test="town != null and town != ''">
+            and
+            town = #{town}
+        </if>
+        )
+        <if test="condition != null and condition != '' and condition !='null'">
+            and (
+              user.username like concat('%', #{condition}, '%') or
+              device.province like concat('%', #{condition}, '%') or
+              device.city like concat('%', #{condition}, '%') or
+              device.area like concat('%', #{condition}, '%') or
+              device.town like concat('%', #{condition}, '%') or
+              user.username like concat('%', #{condition}, '%') or
+              user.name like concat('%', #{condition}, '%') or
+              device_maintenance.device_id like concat('%', #{condition}, '%')
+            )
+        </if>
+        <if test="date != null and date != '' and date !='null' and date != 'null 00:00:00'">
+            and `date` &gt;= #{date}
+        </if>
+
+        <if test="endDate != null and endDate != '' and endDate !='null' and endDate!= 'null 23:59:59'">
+            and `date` &lt;= #{endDate}
+        </if>
+        <if test="reported != null and reported != ''">
+            and reported = #{reported}
+        </if>
+              and isactive = '0'
+        
+        group by device_id
+        order by `date` desc
+    </select>
+    <select id="getMaintenanceDataByAdcodeAndTown1" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select device_maintenance.id,
+        device_maintenance.device_id,
+        device_maintenance.batch,
+        num,
+        device_maintenance.other_type,
+        device_maintenance.other_num,
+        device_maintenance.username,
+        user.name,
+        device_maintenance.date,
+        device_maintenance.longitude,
+        device_maintenance.latitude,
+        device_maintenance.altitude,
+        device_maintenance.img_id,
+        device_maintenance.drug,
+        device_maintenance.remark,
+        device.province,
+        device.city,
+        device.area,
+        device.CustomSerial,
+        device.town,
+        device_maintenance.working_content,
+        device_maintenance.reported,
+        workcontent.name workcontentfront
+        from device_maintenance
+        left join device on device.id = device_maintenance.device_id
+        left join user on device_maintenance.username = user.username
+        left join workcontent on working_content = workcontent.Fvalue
+        where device_id in
+        (select id from device where
+        1 = 1
+        <if test="adcode != null and adcode != ''">
+            and
+            adcode like concat(#{adcode}, '%')
+        </if>
+
+        <if test="town != null and town != ''">
+            and
+            town = #{town}
+        </if>
+        )
+        <if test="condition != null and condition != '' and condition !='null'">
+            and (
+            user.username like concat('%', #{condition}, '%') or
+            device.province like concat('%', #{condition}, '%') or
+            device.city like concat('%', #{condition}, '%') or
+            device.area like concat('%', #{condition}, '%') or
+            device.town like concat('%', #{condition}, '%') or
+            user.username like concat('%', #{condition}, '%') or
+            user.name like concat('%', #{condition}, '%') or
+            device_maintenance.device_id like concat('%', #{condition}, '%')
+
+            )
+        </if>
+        <if test="batch != null and batch != '' and batch !='null'">
+            and `batch` = #{batch}
+        </if>
+        <if test="date != null and date != '' and date !='null' and date != 'null 00:00:00'">
+            and `date` &gt;= #{date}
+        </if>
+        <if test="searchtown != null and searchtown != '' and searchtown !='null'">
+            and device.town like concat('%', #{searchtown}, '%')
+        </if>
+        <if test="endDate != null and endDate != '' and endDate !='null' and endDate!= 'null 23:59:59'">
+            and `date` &lt;= #{endDate}
+        </if>
+        <if test="reported != null and reported != ''">
+        and reported = #{reported}
+    </if>
+            and isactive = '0'
+        
+        order by `date` desc
+    </select>
+    <select id="getMaintenanceDataByAdcodeAndTown2" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select device_maintenance.id,
+        device_maintenance.device_id,
+        device_maintenance.batch,
+        sum(num) num,
+        device_maintenance.other_type,
+        device_maintenance.other_num,
+        device_maintenance.username,
+        user.name,
+        device_maintenance.date,
+        device_maintenance.longitude,
+        device_maintenance.latitude,
+        device_maintenance.altitude,
+        device_maintenance.img_id,
+        device_maintenance.drug,
+        device_maintenance.remark,
+        device.province,
+        device.city,
+        device.area,
+        device.town,
+        device_maintenance.working_content,
+        device_maintenance.reported
+        from device_maintenance
+        left join device on device.id = device_maintenance.device_id
+        left join user on device_maintenance.username = user.username
+        where device_id in
+        (select id from device where
+        1 = 1
+        <if test="adcode != null and adcode != ''">
+            and
+            adcode like concat(#{adcode}, '%')
+        </if>
+
+        <if test="town != null and town != ''">
+            and
+            town = #{town}
+        </if>
+        )
+        <if test="condition != null and condition != '' and condition !='null'">
+            and (
+            user.username = #{condition} or
+            device.province = #{condition} or
+            device.city = #{condition} or
+            device.area =  #{condition} or
+            device.town = #{condition} or
+            device_maintenance.device_id = #{condition} or
+            device.manager=#{condition}
+            )
+        </if>
+        <if test="date != null and date != '' and date !='null' and date != 'null 00:00:00'">
+            and `date` &gt;= #{date}
+        </if>
+
+        <if test="endDate != null and endDate != '' and endDate !='null' and endDate!= 'null 23:59:59'">
+            and `date` &lt;= #{endDate}
+        </if>
+
+        <if test="reported != null and reported != ''">
+            and reported = #{reported}
+        </if>
+        
+        and isactive = '0'
+        group by device_id,device_maintenance.username
+
+        order by `date` desc
+    </select>
+    <select id="getMaintenanceDataByAdcodeAndTown4" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select device_maintenance.id,
+        device_maintenance.device_id,
+        device_maintenance.batch,
+        num,
+        device_maintenance.other_type,
+        device_maintenance.other_num,
+        device_maintenance.username,
+        user.name,
+        device_maintenance.date,
+        device_maintenance.longitude,
+        device_maintenance.latitude,
+        device_maintenance.altitude,
+        device_maintenance.img_id,
+        device_maintenance.drug,
+        device_maintenance.remark,
+        device.province,
+        device.city,
+        device.area,
+        device.town,
+        device_maintenance.working_content,
+        device_maintenance.reported
+        from device_maintenance
+        left join device on device.id = device_maintenance.device_id
+        left join user on device_maintenance.username = user.username
+        where device_id in
+        (select id from device where
+        1 = 1
+        <if test="adcode != null and adcode != ''">
+            and
+            adcode like concat(#{adcode}, '%')
+        </if>
+
+        <if test="town != null and town != ''">
+            and town is not null
+            and town = #{town}
+        </if>
+        )
+        <if test="condition != null and condition != '' and condition !='null'">
+            and (
+            user.username = #{condition} or
+            device.province = #{condition} or
+            device.city = #{condition} or
+            device.area =  #{condition} or
+            device.town = #{condition} or
+            device_maintenance.device_id = #{condition} or
+            device.manager=#{condition}
+            )
+        </if>
+        <if test="date != null and date != '' and date !='null' and date != 'null 00:00:00'">
+            and `date` &gt;= #{date}
+        </if>
+        <if test="batch != null and batch != '' and batch !='null'">
+            and batch= #{batch}
+        </if>
+        <if test="searchTown != null and searchTown != '' and searchTown !='null'">
+            and device.town like concat('%', #{searchTown}, '%')
+        </if>
+        <if test="endDate != null and endDate != '' and endDate !='null' and endDate!= 'null 23:59:59'">
+            and `date` &lt;= #{endDate}
+        </if>
+        <if test="reported != null and reported != ''">
+            and reported = #{reported}
+        </if>
+        and isactive = '0'
+        
+        order by `date` desc
+    </select>
+    <select id="getMaintenanceDataByUsername" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select device_maintenance.id,
+        device_maintenance.device_id,
+        device_maintenance.batch,
+        device_maintenance.num,
+        device_maintenance.male_num,
+        device_maintenance.female_num,
+        device_maintenance.username,
+        user.name,
+        device_maintenance.date,
+        device_maintenance.longitude,
+        device_maintenance.latitude,
+        device_maintenance.altitude,
+        device_maintenance.img_id,
+        device_maintenance.drug,
+        device_maintenance.remark,
+        device.province,
+        device.city,
+        device.area,
+        device.town
+        from device_maintenance
+        left join device on device.id = device_maintenance.device_id
+        left join user on user.username = device_maintenance.username
+        where device_maintenance.username = #{username}
+              and isactive = '0'
+        <if test="condition != null and condition != '' and condition !='null'">
+            and (
+            user.username like concat('%', #{condition}, '%') or
+            device.province like concat('%', #{condition}, '%') or
+            device.city like concat('%', #{condition}, '%') or
+            device.area like concat('%', #{condition}, '%') or
+            device.town like concat('%', #{condition}, '%') or
+            user.username like concat('%', #{condition}, '%') or
+            user.name like concat('%', #{condition}, '%') or
+            device_maintenance.device_id like concat('%', #{condition}, '%')
+            )
+        </if>
+        <!--<if test="date != null and date != ''">-->
+            <!--and DATE_FORMAT(convert_tz(`date`, @@session.time_zone,'+08:00'), '%Y-%m-%d') = #{date}-->
+        <!--</if>-->
+
+        <if test="date != null and date != '' and date !='null' and date != 'null 00:00:00'">
+            and `date` &gt;= #{date}
+        </if>
+
+        <if test="endDate != null and endDate != '' and endDate != 'null' and endDate!= 'null 23:59:59'">
+            and `date` &lt;= #{endDate}
+        </if>
+        
+        order by `date` desc
+    </select>
+
+    <update id="updateMaintenanceData">
+        update device_maintenance
+        <set>
+            <if test="num != null and num != ''">
+                num = #{num},
+            </if>
+            <if test="maleNum != null and maleNum != ''">
+                male_num = #{maleNum},
+            </if>
+            <if test="femaleNum != null and femaleNum != ''">
+                female_num = #{femaleNum},
+            </if>
+            <if test="username != null and username != ''">
+                username = #{username},
+            </if>
+            <if test="date != null">
+                `date` = #{date},
+            </if>
+            <if test="longitude != null and longitude != ''">
+                longitude = #{longitude},
+            </if>
+            <if test="latitude != null and latitude != ''">
+                latitude = #{latitude},
+            </if>
+            <if test="altitude != null and altitude != ''">
+                altitude = #{altitude},
+            </if>
+            <if test="drug != null and drug != ''">
+                drug = #{drug},
+            </if>
+            <if test="remark != null and remark != ''">
+                remark = #{remark},
+            </if>
+            <if test="batch != null and batch != ''">
+                batch = #{batch},
+            </if>
+            <if test="workingContent != null and workingContent > -1">
+                working_content = #{workingContent},
+            </if>
+            <if test="otherType != null">
+                other_type = #{otherType},
+            </if>
+            <if test="otherNum != null">
+                other_num = #{otherNum},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+<!--修改了随机数-->
+
+    <insert id="addMaintenanceData">
+        insert into device_maintenance
+        (num, male_num, female_num, username, `date`, longitude, latitude, altitude, img_id, device_id, drug, remark,
+         batch, working_content, other_type, other_num,isactive)
+        values
+        (#{num}, #{maleNum}, #{femaleNum}, #{username}, #{date}, #{longitude}, #{latitude}, #{altitude}, #{imageId}, #{deviceId},
+        #{drug}, #{remark}, #{batch}, #{workingContent}, #{otherType}, #{otherNum},'0')
+    </insert>
+
+    <update id="reportData">
+        update device_maintenance
+        set reported = 1
+        where id = #{id}
+    </update>
+    <update id="updateMaintenanceDataByDeviceIdAndBatch">
+        update device_maintenance
+        <set>
+            <if test="num != null and num != ''">
+                num = #{num},
+            </if>
+            <if test="maleNum != null and maleNum != ''">
+                male_num = #{maleNum},
+            </if>
+            <if test="femaleNum != null and femaleNum != ''">
+                female_num = #{femaleNum},
+            </if>
+            <if test="username != null and username != ''">
+                username = #{username},
+            </if>
+            <if test="date != null">
+                `date` = #{date},
+            </if>
+            <if test="longitude != null and longitude != ''">
+                longitude = #{longitude},
+            </if>
+            <if test="latitude != null and latitude != ''">
+                latitude = #{latitude},
+            </if>
+            <if test="altitude != null and altitude != ''">
+                altitude = #{altitude},
+            </if>
+            <if test="drug != null and drug != ''">
+                drug = #{drug},
+            </if>
+            <if test="remark != null and remark != ''">
+                remark = #{remark},
+            </if>
+            <if test="workingContent != null and workingContent > -1">
+                working_content = #{workingContent},
+            </if>
+            <if test="otherType != null">
+                other_type = #{otherType},
+            </if>
+            <if test="otherNum != null">
+                other_num = #{otherNum},
+            </if>
+        </set>
+        where device_id = #{deviceId} and batch = #{batch}
+        and isactive = '0'
+        
+    </update>
+    <select id="getMaxBatchByDeviceid" resultType="java.lang.Integer">
+        select max(batch) from device_maintenance where  device_id = #{deviceID}
+    </select>
+    <delete id="deleteById">
+        update device_maintenance
+        set isdelete = '1'
+        where id = #{id}
+    </delete>
+    <delete id="deleteByIdReally">
+        delete from device_maintenance
+        where id = #{id}
+    </delete>
+    <!--todo-->
+
+    <select id="getStatisticsByTown" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select sum(num) num, DATE_FORMAT(convert_tz(`date`, @@session.time_zone,'+08:00'), '%Y-%m-%d') `date`
+        from device_maintenance
+        left join device on device_id=device.id
+        where adcode = #{adcode} and town = #{town}
+              and isactive = '0'
+       
+        group by DATE_FORMAT(`date`, '%Y-%m-%d')
+        order by `date` asc
+    </select>
+
+    <select id="getMonthSummaryByCity" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select sum(num) num,DATE_FORMAT(`date`, '%m') `month`
+        from device_maintenance
+        left join device on device_id=device.id
+        where adcode like concat(#{adcode}, '%')
+        and isactive = '0'
+        
+        and `date` IS NOT NULL
+        <if test="startYear != null and startYear !=''">
+            and `date` &gt;= #{startYear}
+
+        </if>
+
+        <if test="endYear != null and endYear !=''">
+            and `date` &lt;= #{endYear}
+        </if>
+
+        group by date_format(`date`, '%m')
+
+
+
+
+    </select>
+    <select id="getMonthSummaryByArea" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select sum(num) num,DATE_FORMAT(`date`, '%m') `month`
+        from device_maintenance
+        left join device on device_id=device.id
+        where adcode like concat(#{adcode}, '%')
+        and isactive = '0'
+        
+        and `date` IS NOT NULL
+        <if test="startYear != null and startYear !=''">
+            and `date` &gt;= #{startYear}
+
+        </if>
+
+        <if test="endYear != null and endYear !=''">
+            and `date` &lt;= #{endYear}
+        </if>
+
+        group by date_format(`date`, '%m')
+
+
+
+
+    </select>
+    <select id="getMonthSummaryByTown" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select sum(num) num,DATE_FORMAT(`date`, '%m') `month`
+        from device_maintenance
+        left join device on device_id=device.id
+        where adcode = #{adcode}
+        and isactive = '0'
+        
+        and `date` IS NOT NULL
+        <if test="startYear != null and startYear !=''">
+            and `date` &gt;= #{startYear}
+
+        </if>
+
+        <if test="endYear != null and endYear !=''">
+            and `date` &lt;=#{endYear}
+        </if>
+
+        group by date_format(`date`, '%m')
+
+
+
+    </select>
+    <select id="getMonthSummaryByWorker" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select sum(num) num,DATE_FORMAT(`date`, '%m') `month`
+        from device_maintenance
+
+        left join device on device_id=device.id
+        left join user on user.username = device_maintenance.username
+        where user.parent = #{adcode}
+        and isactive = '0'
+        
+        and `date` IS NOT NULL
+        <if test="startYear != null and startYear !=''">
+            and `date` &gt;= #{startYear}
+
+        </if>
+
+        <if test="endYear != null and endYear !=''">
+            and `date` &lt;=#{endYear}
+        </if>
+
+        group by date_format(`date`, '%m')
+
+
+
+
+    </select>
+
+    <select id="getStatisticsByArea" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select sum(num) num, DATE_FORMAT(convert_tz(`date`, @@session.time_zone,'+08:00'), '%Y-%m-%d') `date`
+        from device_maintenance
+        left join device on device_id=device.id
+        where adcode = #{adcode}
+        and isactive = '0'
+        
+        group by DATE_FORMAT(`date`, '%Y-%m-%d')
+        order by `date` asc
+    </select>
+
+    <select id="getStatisticsByLikeAdcode" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select sum(num) num, DATE_FORMAT(convert_tz(`date`, @@session.time_zone,'+08:00'), '%Y-%m-%d') `date`
+        from device_maintenance
+        left join device on device_id=device.id
+        where adcode like concat(#{adcode}, '%')
+        and isactive = '0'
+        
+        group by DATE_FORMAT(`date`, '%Y-%m-%d')
+        order by `date` asc
+    </select>
+
+    <select id="getChangeTimesByDeviceId" resultType="int">
+        select count(*) from device_maintenance
+        where device_id = #{id}
+        
+        and isactive = '0'
+
+    </select>
+    <select id="getoneMaintenanceDataById" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select device_maintenance.device_id,
+        device_maintenance.batch,
+        device_maintenance.num,
+        device_maintenance.male_num,
+        device_maintenance.female_num,
+        device_maintenance.username,
+        device_maintenance.other_type,
+        device_maintenance.date,
+        device_maintenance.longitude,
+        device_maintenance.latitude,
+        device_maintenance.altitude,
+        device_maintenance.img_id,
+        device_maintenance.drug,
+        device_maintenance.remark,
+        device.province,
+        device.city,
+        device.area,
+        device.town,
+        device_maintenance.other_num,
+        device_maintenance.working_content
+
+         from device_maintenance
+        left join device on device.id = device_maintenance.device_id
+
+        where device_maintenance.id = #{id}
+        and isactive = '0'
+        
+        <if test="startDate != null and startDate !='' and startDate != 'null 00:00:00'">
+            and `date` &gt;= #{startDate}
+        </if>
+
+        <if test="endDate != null and endDate !='' and endDate!= 'null 23:59:59'">
+            and `date` &lt;= #{endDate}
+        </if>
+
+    </select>
+
+    <select id="getMaintenanceDataById" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select * from device_maintenance
+        where device_id = #{id}
+              and isactive = '0'
+        
+        <if test="startDate != null and startDate !='' and startDate != 'null 00:00:00'">
+            and `date` &gt;= #{startDate}
+        </if>
+
+        <if test="endDate != null and endDate !='' and endDate!= 'null 23:59:59'">
+            and `date` &lt;= #{endDate}
+        </if>
+        <if test="reported != null and reported != ''">
+            and reported = #{reported}
+        </if>
+    </select>
+    <select id="getMaintenanceDataByIdScan" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select * from device_maintenance
+        where device_id = #{id}
+        and isactive = '0'
+        
+
+    </select>
+    <select id="getMaintenanceDataById1" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select * from device_maintenance_abnormal
+        where id = #{id}
+        and isactive = '0'
+
+    </select>
+    <select id="getMaintenanceDataById2" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select * from device_maintenance
+        where id = #{id}
+        and isactive = '0'
+
+    </select>
+    <select id="getInputEntityForTown" resultType="cn.huihongcloud.entity.statistics.InputEntity">
+        select town name, sum(num1) `sum`, CustomTown,avg(num1) mean, stddev_samp(num1) `std`, max(num1) `max`, min(num1) `min`, count(distinct device_id) `count`
+        from (
+        select CustomTown,town,sum(num) num1,device_id
+        from device_maintenance
+        left join device on device_id = device.id
+        where adcode = #{adcode}
+              and isactive = '0'
+        
+        <if test="startDate != null and startDate !='' and startDate != 'null 00:00:00'">
+            and `date` &gt;= #{startDate}
+        </if>
+
+        <if test="endDate != null and endDate !='' and endDate!= 'null 23:59:59'">
+            and `date` &lt;= #{endDate}
+        </if>
+        group by device_id)as a
+        group by CustomTown
+    </select>
+    <select id="getInputEntityForArea" resultType="cn.huihongcloud.entity.statistics.InputEntity">
+        select area name, sum(num1) `sum` ,CustomTown,avg(num1) mean, stddev_samp(num1) `std`, max(num1) `max`, min(num1) `min`, count(distinct device_id) `count`
+         from (
+            select area,sum(num) num1,CustomTown,device_id,adcode
+            from device_maintenance
+            left join device on device_id = device.id
+            where adcode like concat(#{code}, '%')
+                  and isactive = '0'
+        
+        <if test="startDate != null and startDate !='' and startDate != 'null 00:00:00'">
+            and `date` &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate !='' and endDate!= 'null 23:59:59'">
+            and `date` &lt;= #{endDate}
+        </if>
+        group by device_id)as a
+        group by area
+    </select>
+    <select id="getInputEntityForCity" resultType="cn.huihongcloud.entity.statistics.InputEntity">
+        select city name,  sum(num1) `sum` ,CustomTown,avg(num1) mean, stddev_samp(num1) `std`, max(num1) `max`, min(num1) `min`, count(distinct device_id) `count`
+        from (
+        select city,sum(num) num1,CustomTown,device_id
+         from device_maintenance
+        left join device on device_id = device.id
+        where adcode like concat(#{code}, '%')
+              and isactive = '0'
+        
+        <if test="startDate != null and startDate !='' and startDate != 'null 00:00:00'">
+            and `date` &gt;= #{startDate}
+        </if>
+
+        <if test="endDate != null and endDate !='' and endDate!= 'null 23:59:59'">
+            and `date` &lt;= #{endDate}
+        </if>
+        group by device_id)as a
+        group by city
+    </select>
+    <select id="getInputEntityForWorker" resultType="cn.huihongcloud.entity.statistics.InputEntity">
+        select CustomTown name, sum(num1) `sum` ,CustomTown ,avg(num1) mean, stddev_samp(num1) `std`, max(num1) `max`, min(num1) `min`, count(distinct device_id) `count`
+        from (
+        select device_maintenance.username username,sum(num) num1,CustomTown,device_id
+        from device_maintenance
+        left join device on  device.id= device_maintenance.device_id
+        where device.manager = #{manager}
+              and isactive = '0'
+        
+        <if test="startDate != null and startDate !='' and startDate != 'null 00:00:00'">
+            and `date` &gt;= #{startDate}
+        </if>
+
+        <if test="endDate != null and endDate !='' and endDate!= 'null 23:59:59'">
+            and `date` &lt;= #{endDate}
+        </if>
+        group by device_id)as a
+        group by CustomTown
+    </select>
+    <select id="getMaintenanceDataByManager" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select device_maintenance.id,
+        device_maintenance.device_id,
+        device_maintenance.batch,
+        sum(num) num,
+        device_maintenance.other_type,
+        device_maintenance.other_num,
+        device_maintenance.username,
+        user.name,
+        device_maintenance.date,
+        device_maintenance.longitude,
+        device_maintenance.latitude,
+        device_maintenance.altitude,
+        device_maintenance.img_id,
+        device_maintenance.drug,
+        device_maintenance.remark,
+        device.province,
+        device.city,
+        device.area,
+        device.town,
+        device_maintenance.working_content,
+        device_maintenance.reported
+        from device_maintenance
+        left join device on device.id = device_maintenance.device_id
+        left join user on device_maintenance.username = user.username
+        where device_id in
+        (select id from device where
+        1 = 1
+        <if test="adcode != null and adcode != ''">
+            and
+            adcode like concat(#{adcode}, '%')
+        </if>
+
+        <if test="town != null and town != ''">
+            and
+            town = #{town}
+        </if>
+        )
+        <if test="condition != null and condition != '' and condition != 'null'">
+            and (
+            user.username like concat('%', #{condition}, '%') or
+            device.province like concat('%', #{condition}, '%') or
+            device.city like concat('%', #{condition}, '%') or
+            device.area like concat('%', #{condition}, '%') or
+            device.town like concat('%', #{condition}, '%') or
+            user.username like concat('%', #{condition}, '%') or
+            user.name like concat('%', #{condition}, '%') or
+            device_maintenance.device_id like concat('%', #{condition}, '%')
+            )
+        </if>
+        <if test="date != null and date != '' and date !='null' and date != 'null 00:00:00'">
+            and `date` &gt;= #{date}
+        </if>
+
+        <if test="endDate != null and endDate != '' and endDate!= 'null' and endDate!= 'null 23:59:59'">
+            and `date` &lt;= #{endDate}
+        </if>
+        <if test="manager != null">
+            and manager = #{manager}
+        </if>
+        and isactive = '0'
+        
+        group by device_id
+        order by `date` desc
+    </select>
+    <select id="getMaintenanceDataByManager2" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select device_maintenance.id,
+        device_maintenance.device_id,
+        device_maintenance.batch,
+        sum(num) num,
+        device_maintenance.other_type,
+        device_maintenance.other_num,
+        device_maintenance.username,
+        user.name,
+        device_maintenance.date,
+        device_maintenance.longitude,
+        device_maintenance.latitude,
+        device_maintenance.altitude,
+        device_maintenance.img_id,
+        device_maintenance.drug,
+        device_maintenance.remark,
+        device.province,
+        device.city,
+        device.area,
+        device.town,
+        device_maintenance.working_content,
+        device_maintenance.reported
+        from device_maintenance
+        left join device on device.id = device_maintenance.device_id
+        left join user on device_maintenance.username = user.username
+        where device_id in
+        (select id from device where
+        1 = 1
+        <if test="adcode != null and adcode != ''">
+            and
+            adcode like concat(#{adcode}, '%')
+        </if>
+
+        <if test="town != null and town != ''">
+            and
+            town = #{town}
+        </if>
+        )
+        <if test="condition != null and condition != '' and condition != 'null'">
+            and (
+            user.username =#{condition} or
+            device.province =#{condition} or
+            device.city = #{condition} or
+            device.area =#{condition} or
+            device.town = #{condition} or
+            device_maintenance.device_id = #{condition}
+            )
+        </if>
+        <if test="date != null and date != '' and date !='null' and date != 'null 00:00:00'">
+            and `date` &gt;= #{date}
+        </if>
+
+        <if test="endDate != null and endDate != '' and endDate!= 'null' and endDate!= 'null 23:59:59'">
+            and `date` &lt;= #{endDate}
+        </if>
+        <if test="manager != null">
+            and manager = #{manager}
+        </if>
+        and isactive = '0'
+
+        group by device_id,device_maintenance.username
+        order by `date` desc
+    </select>
+    <select id="getMaintenanceDataByManager4" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select device_maintenance.id,
+        device_maintenance.device_id,
+        device_maintenance.batch,
+        num,
+        device_maintenance.other_type,
+        device_maintenance.other_num,
+        device_maintenance.username,
+        user.name,
+        device_maintenance.date,
+        device_maintenance.longitude,
+        device_maintenance.latitude,
+        device_maintenance.altitude,
+        device_maintenance.img_id,
+        device_maintenance.drug,
+        device_maintenance.remark,
+        device.province,
+        device.city,
+        device.area,
+        device.town,
+        device_maintenance.working_content,
+        device_maintenance.reported
+        from device_maintenance
+        left join device on device.id = device_maintenance.device_id
+        left join user on device_maintenance.username = user.username
+        where device_id in
+        (select id from device where
+        1 = 1
+        <if test="adcode != null and adcode != ''">
+            and
+            adcode like concat(#{adcode}, '%')
+        </if>
+
+        <if test="town != null and town != ''">
+            and
+            town = #{town}
+        </if>
+        )
+        <if test="condition != null and condition != '' and condition != 'null'">
+            and (
+            user.username =#{condition} or
+            device.province =#{condition} or
+            device.city = #{condition} or
+            device.area =#{condition} or
+            device.town = #{condition} or
+            device_maintenance.device_id = #{condition}
+            )
+        </if>
+        <if test="date != null and date != '' and date !='null' and date != 'null 00:00:00'">
+            and `date` &gt;= #{date}
+        </if>
+        <if test="batch != null and batch != '' and batch !='null'">
+            and batch = #{batch}
+        </if>
+        <if test="searchTown != null and searchTown != '' and searchTown !='null'">
+            and device.town like concat('%', #{searchTown}, '%')
+        </if>
+        <if test="endDate != null and endDate != '' and endDate!= 'null' and endDate!= 'null 23:59:59'">
+            and `date` &lt;= #{endDate}
+        </if>
+        <if test="manager != null">
+            and manager = #{manager}
+        </if>
+        <if test="reported != null and reported != ''">
+            and reported = #{reported}
+        </if>
+        and isactive = '0'
+ 
+        order by `date` desc
+    </select>
+    <select id="getMaintenanceDataByManager1" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select device_maintenance.id,
+        device_maintenance.device_id,
+        device_maintenance.batch,
+        num num,
+        device_maintenance.other_type,
+        device_maintenance.other_num,
+        device_maintenance.username,
+        user.name,
+        device_maintenance.date,
+        device_maintenance.longitude,
+        device_maintenance.latitude,
+        device_maintenance.altitude,
+        device_maintenance.img_id,
+        device_maintenance.drug,
+        device_maintenance.remark,
+        device.province,
+        device.city,
+        device.CustomTown,
+        device.CustomSerial,
+        device.area,
+        device.town,
+        workcontent.name workcontentfront,
+        device_maintenance.working_content,
+        device_maintenance.reported
+        from device_maintenance
+        left join device on device.id = device_maintenance.device_id
+        left join user on device_maintenance.username = user.username
+        left join workcontent on working_content = workcontent.Fvalue
+
+
+        where device_id in
+        (select id from device where
+        1 = 1
+        <if test="customProject != null and customProject != ''">
+            and CustomProject = #{customProject}
+        </if>
+
+        <if test="town != null and town != ''">
+            and town = #{town}
+        </if>
+        )
+        <if test="condition != null and condition != '' and condition != 'null'">
+            and (
+            user.username like concat('%', #{condition}, '%') or
+            device.province like concat('%', #{condition}, '%') or
+            device.city like concat('%', #{condition}, '%') or
+            device.area like concat('%', #{condition}, '%') or
+            device.town like concat('%', #{condition}, '%') or
+            user.username like concat('%', #{condition}, '%') or
+            user.name like concat('%', #{condition}, '%') or
+            device_maintenance.device_id like concat('%', #{condition}, '%')
+            )
+        </if>
+        <if test="date != null and date != '' and date !='null' and date != 'null 00:00:00'">
+            and `date` &gt;= #{date}
+        </if>
+        <if test="batch != null and batch != '' and batch !='null'">
+            and `batch` = #{batch}
+        </if>
+        <if test="searchtown != null and searchtown != '' and searchtown !='null'">
+            and device.town like concat('%', #{searchtown}, '%')
+        </if>
+        <if test="endDate != null and endDate != '' and endDate!= 'null' and endDate!= 'null 23:59:59'">
+            and `date` &lt;= #{endDate}
+        </if>
+        <if test="manager != null">
+            and manager = #{manager}
+        </if>
+        and isactive = '0'
+
+        order by `date` desc
+    </select>
+
+
+</mapper>

@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.huihongcloud.mapper.DeviceBeetleMapper">
+    <resultMap id="DeviceBeetle" type="cn.huihongcloud.entity.device.DeviceBeetle">
+        <id column="id" property="id"/>
+        <result column="device_id" property="deviceId"/>
+        <result column="change_date" property="changeDate"/>
+        <result column="change_times" property="changeTimes"/>
+        <result column="beetle_num" property="beetleNum"/>
+        <result column="sample_alive" property="sampleAlive"/>
+        <result column="pine_death_num" property="pineDeathNum"/>
+        <result column="epidemic_area" property="epidemicArea"/>
+    </resultMap>
+
+    <select id="selectByDeviceId" resultMap="DeviceBeetle">
+        select *
+        from device_beetle_data
+        where device_id = #{deviceId}
+    </select>
+
+    <insert id="addData">
+        insert into device_beetle_data
+        (id, device_id, change_date, change_times, beetle_num, sample_alive, pine_death_num, epidemic_area)
+        values
+        (#{id}, #{deviceId}, #{changeDate}, #{changeTimes}, #{beetleNum}, #{sampleAlive}, #{pineDeathNum}, #{epidemicArea})
+    </insert>
+
+    <update id="updateData">
+        update table
+        where id = #{id}
+        <set>
+            <if test="deviceId != null and deviceId != ''">
+                device_id = #{deviceId},
+            </if>
+            <if test="changeDate != null and changeDate != ''">
+                change_date = #{changeDate},
+            </if>
+            <if test="changeTimes != null and changeTimes != ''">
+                change_times = #{changeTimes},
+            </if>
+            <if test="beetleNum != null and beetleNum != ''">
+                beetle_num = #{beetleNum},
+            </if>
+            <if test="sampleAlive != null and sampleAlive != ''">
+                sampleAlive = #{sampleAlive},
+            </if>
+            <if test="pineDeathNum != null and pineDeathNum != ''">
+                pineDeath_num = #{pineDeathNum},
+            </if>
+            <if test="epidemicArea != null and epidemicArea != ''">
+                epidemic_area = #{epidemicArea},
+            </if>
+        </set>
+    </update>
+    <delete id="deleteById">
+        delete from device_beetle_data
+        where id = #{id}
+    </delete>
+    <select id="getStatisticsByTown" resultMap="DeviceBeetle">
+        select sum(beetle_num) beetle_num, DATE_FORMAT(change_date, '%Y-%m-%d') change_date
+        from device_beetle_data
+        left join device on device_id=device.id
+        where adcode = #{adcode} and town = #{town}
+        group by DATE_FORMAT(change_date, '%Y-%m-%d')
+        order by change_date asc
+    </select>
+
+    <select id="getStatisticsByArea" resultMap="DeviceBeetle">
+        select sum(beetle_num) beetle_num, DATE_FORMAT(change_date, '%Y-%m-%d') change_date
+        from device_beetle_data
+        left join device on device_id=device.id
+        where adcode = #{adcode}
+        group by DATE_FORMAT(change_date, '%Y-%m-%d')
+        order by change_date asc
+    </select>
+
+    <select id="getStatisticsByLikeAdcode" resultMap="DeviceBeetle">
+        select sum(beetle_num) beetle_num, DATE_FORMAT(change_date, '%Y-%m-%d') change_date
+        from device_beetle_data
+        left join device on device_id=device.id
+        where adcode like concat(#{adcode}, '%')
+        group by DATE_FORMAT(change_date, '%Y-%m-%d')
+        order by change_date asc
+    </select>
+
+    <select id="getChangeTimesByDeviceId" resultType="int">
+        select count(*) from device_beetle_data where device_id = #{id}
+    </select>
+    <select id="getBeetleInfoByArea" resultType="cn.huihongcloud.entity.beetle.BeetleInfo">
+        select * from beetle_info left join beetle_info_map bim on beetle_info.id = bim.beetle_info_id where adcode = #{adcode}
+    </select>
+    <select id="getInjectTypeByArea" resultType="cn.huihongcloud.entity.injectInfo">
+        select * from injectInfo t1 left join injectInfo_map t2 on t1.id = t2.id where t2.adcode = #{adcode};
+    </select>
+    <select id="getWorkContentByArea" resultType="cn.huihongcloud.entity.workContent">
+        select * from workContent t1 left join workContent_map t2 on t1.id = t2.id where t2.adcode = #{adcode};
+    </select>
+    <select id="getInjectWoodStatus" resultType="cn.huihongcloud.entity.inject_WoodStatus">
+        select * from inject_WoodStatus left join inject_WoodStatus_map on inject_WoodStatus.id = inject_WoodStatus_map.id where adcode = #{adcode};
+    </select>
+    <select id="getInjectWorkContent" resultType="cn.huihongcloud.entity.inject_WorkContent">
+        select * from inject_WorkContent left join inject_WorkContent_map on inject_WorkContent.id = inject_WorkContent_map.id where adcode = #{adcode};
+
+    </select>
+    <select id="getEnemyType" resultType="cn.huihongcloud.entity.enemy_EneType">
+        select * from enemy_EneType left join enemy_EneType_map on enemy_EneType.id = enemy_EneType_map.id where adcode = #{adcode};
+    </select>
+    <select id="getKillMethods" resultType="cn.huihongcloud.entity.deadTree_KillMethods">
+        select * from deadtree_KillMethods t1 left join deadtrees_KillMethods_map t2 on t1.id = t2.id where adcode = #{adcode};
+    </select>
+    <select id="getById" resultType="cn.huihongcloud.entity.Device_NaturalEnemies_maintanceEntity">
+        select * from device_naturalenemies_maintance where device_Id = #{deivceId};
+    </select>
+    <select id="getTrapById" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select * from device_maintenance left join device on device_id = device.id where device.scanId = #{scanId};
+    </select>
+    <select id="InjectWorker" resultType="cn.huihongcloud.entity.Device_Injection_maintanceEntity">
+        select * from device_injection_maintance left join device on device.id = device_Id where device.scanId like concat('%', #{scanId}, '%');
+    </select>
+    <select id="DeadWorker" resultType="cn.huihongcloud.entity.Device_DeadTrees_maintanceEntity">
+        select * from device_deadtrees_maintance left join device on device.id = device_Id where device.scanId = #{scanId};
+    </select>
+
+    <select id="getFuckFuck" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        select * from device_maintenance left join device on device.id = device_id
+        where adcode = #{adcode}
+        <if test="searchText != null and searchText != ''">
+            and ${colName} = #{searchText}
+        </if>
+        <if test="submitDate != null and submitDate != ''">
+            and `date` &gt;= #{submitDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            and `date` &lt;= #{endDate}
+        </if>
+
+    </select>
+
+    <select id="selectByDateAndColSearch" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        SELECT * FROM device_maintenance t1 LEFT JOIN device t2 ON t1.device_Id = t2.id
+        WHERE t2.adcode
+        LIKE concat(#{adcode}, '%')
+        <if test="startDate!=null and startDate !=''">
+            and t1.`date` >= #{startDate}
+        </if>
+        <if test="endDate != null and endDate !=''">
+            and t1.`date` &lt;= #{endDate}
+        </if>
+        <if test="colName!=null and colName !='' and searchText!=null and searchText!=''">
+            and ${colName} = #{searchText}
+        </if>
+
+    </select>
+    <select id="getFuckFuckByCustomProject" resultType="cn.huihongcloud.entity.device.DeviceMaintenance">
+        SELECT * FROM device_maintenance t1 LEFT JOIN device t2 ON t1.device_Id = t2.id
+        WHERE t2.CustomProject = #{customProject}
+        <if test="startDate!=null and startDate !=''">
+            and t1.`date` >= #{startDate}
+        </if>
+        <if test="endDate != null and endDate !=''">
+            and t1.`date` &lt;= #{endDate}
+        </if>
+        <if test="colName!=null and colName !='' and searchText!=null and searchText!=''">
+            and ${colName} = #{searchText}
+        </if>
+
+    </select>
+    <select id="getMedicineName" resultType="cn.huihongcloud.entity.MedicineName">
+         select * from medicine_name  left join medicine_nameinfo_map  on medicine_name.id = medicine_nameinfo_map.id where adcode = #{adcode};
+    </select>
+    <select id="getWorkContent" resultType="cn.huihongcloud.entity.Medicine_WorkContentEntity">
+         select * from medicine_workcontent t1 left join medicine_workcontent_map t2 on t1.id = t2.id where adcode = #{adcode};
+    </select>
+    <select id="MedicineWorker" resultType="cn.huihongcloud.entity.Device_Medicine_MaintanceEntity">
+         select * from device_medicine_maintance left join device on device.id = device_Id where device.scanId like concat('%', #{scanId}, '%');
+    </select>
+    <select id="getMedicinetWorkContent" resultType="cn.huihongcloud.entity.Medicine_WorkContentEntity">
+        select * from medicine_workcontent left join medicine_workcontent_map on medicine_workcontent.id = medicine_workcontent_map.id where adcode = #{adcode};
+    </select>
+    <select id="getInjectName" resultType="cn.huihongcloud.entity.InjectName">
+        select * from inject_name  left join inject_name_map  on inject_name.id = inject_name_map.id where adcode = #{adcode};
+    </select>
+
+</mapper>
